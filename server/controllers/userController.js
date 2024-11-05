@@ -18,6 +18,20 @@ const getCart = async(req, res) => {
     }  
 }
 
+const getCartItems = async(req, res) => {
+
+    const {userId} = req.body
+
+    if(!userId) return res.status(301).send("error fetching cart details")
+    
+    try {
+        const cartItems = await cartItemRepo.getCartItemByUser(userId)
+        res.status(200).json(cartItems)
+    } catch (error) {
+        
+    }  
+}
+
 const addCartItem = async(req, res) => {
 
     // console.log("came here")
@@ -86,6 +100,7 @@ const removeCartItem = async(req, res) => {
 module.exports = {
     getCart,
     addCartItem,
-    removeCartItem
+    removeCartItem, 
+    getCartItems
 }
 

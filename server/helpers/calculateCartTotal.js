@@ -3,7 +3,7 @@ const OrderItem = require("../schema/OrderItemSchema")
 
 const userRepo = require("../repositories/user-repo")
 const cartItemRepo = require("../repositories/cart-item-repo")
-const productRepo = require("../repositories/product-repo")
+// const productRepo = require("../repositories/product-repo")
 
 const calculateCartTotal = async (userId) => {
 
@@ -11,12 +11,9 @@ const calculateCartTotal = async (userId) => {
         
         const  offersArray = await OfferesSchema.find({})
         const offers = offersArray[0]
-        console.log(offers.buy_n_get_n, "here the offers")
         const cartItems = await cartItemRepo.getCartItemByUser(userId)
-        console.log(cartItems, "her the car items")
         // const cart = await userRepo.getCart(userId)
         const user = await userRepo.getUser(userId)
-
         const cart = user.cart
 
         cart.appliedDiscounts = []
@@ -24,32 +21,36 @@ const calculateCartTotal = async (userId) => {
         cart.discountTotal = 0
 
         const orders = await OrderItem.find({user: userId})
-        const isElgibleforExclusiveTier =  userLifeTimeSpending() > 5000
 
         const findNoOfUniqueItemQuanity = (product) => {
-            const uniqueQuantity = cartItems.filter((item) => item.productId === product)
+            const uniqueQuantity = cartItems.filter((item) => item.productId.toString() === product.toString())
             return Number(uniqueQuantity[0].quantity)
         }
-
+    
         const findNoOfUniqueOrders = (product) => {
-            const sameItemOrder = cartItems.filter((item) => item.productId === product)
+            const sameItemOrder = orders.filter((item) => item.productId.toString() === product.toString())
             return sameItemOrder.length
         }
-
+    
         const userLifeTimeSpending = () => {
-            const total = 0
+            let total = 0
             for (let order of orders) total+= order.price
             return total
         }
-
+        const isAnniversary = () => { 
+            const today = new Date(); 
+            return (today.getDate() === user.createdDate.getDate() && today.getMonth() === user.createdDate.getMonth());
+        }
+        console.log(offers)
+        const isElgibleforExclusiveTier =  userLifeTimeSpending() > 5000
+        
         for(let item of cartItems){
-            console.log("here bgg")
+
+            console.log(item.productId, '\n')
             item.appliedOffers = []
             item.discountPrice = item.actualprice
-            console.log(offers.buy_n_get_n, item.productId, "0000")
 
             if(offers.buy_n_get_n.includes(item.productId)){
-                console.log('@@@ HHH EEE RRRR EEE 111')
                 item.appliedOffers.push("Buy-One_Get_One_Free")
             }
             else if(offers.bpd.includes(item.productId) && item.quantity >= 3) {
@@ -57,33 +58,36 @@ const calculateCartTotal = async (userId) => {
                 item.discountPrice = item.actualprice*(1-0.04)
             }
             else if(
-                offers.ltd.item === item.productId 
-                && (Date.now < offers.ltd.seasonStart && (Date.now > offers.ltd.seasonEnd))
+                offers.ltd.item.toString() === item.productId.toString() 
+                || (Date.now < offers.ltd.seasonStart && (Date.now > offers.ltd.seasonEnd))
             ){
                 item.appliedOffers.push("Limited Time Discount")
                 item.discountPrice = (item.discountPrice/100)*(100 - offers.ltd.discount)
             }
             else if(
-                offers.sd.item == item.productId
+                offers.sd.item.toString() == item.productId.toString()
                 && findNoOfUniqueItemQuanity(offers.cd.pairedItem)>0
             ){
                 item.appliedOffers.push("Seasonal Discount")
                 item.discountPrice = (item.discountPrice/100)*(100 - offers.sd.discount)
             }
-            else if(offers.cd.applicableItem == item.productId){
-
+            else if(offers.cd.applicableItem.toString() === item.productId.toString()){
                 const pairedItemQuantity = findNoOfUniqueItemQuanity(offers.cd.pairedItem)
                 if(pairedItemQuantity > 0 ){
                     if (pairedItemQuantity <= item.quantity) item.discountPrice = (item.actualprice) - ((item.actualprice / (100*item.quantity))* offers.cd.discount * (item.quantity - pairedItemQuantity))
                     else item.discountPrice = (item.discountPrice) - ((item.actualprice / 100)* offers.cd.discount)
+                    item.appliedOffers.push("Combo Discount")
                 }
-                item.appliedOffers.push("Combo Discount")
             }
-            else if(offers.td.item == item.productId){
-                for(let applicable of offers.td.tieredDiscount){
-                    if(applicable.quantity == item.quantity){
+            else if(offers.td.item.toString() == item.productId.toString()){
+                for(let i = 0; i < offers.td.discountPerQuantity.length; i++){
+                    let applicable = offers.td.discountPerQuantity[i]
+                    let nextApplicable = offers.td.discountPerQuantity[i+1]
+
+                    if(applicable.quantity <= item.quantity && !(nextApplicable && item.quantity >= nextApplicable.quantity)){                       
                         item.appliedOffers.push("Tiered Discount")
-                        item.discountPrice = (item.discountPrice/100)*(100 - offers.sd.applicable.discount)
+                        item.discountPrice = (item.discountPrice/100)*(100 - applicable.discount)
+                        break
                     }
                 }
             }
@@ -113,16 +117,8 @@ const calculateCartTotal = async (userId) => {
             cart.discountTotal+= item.discountPrice
         }
 
-        // if(cartItems.length == 5){
-        //     cart.appliedDiscounts.push("Buy More Save More")
-        //     cart.discountTotal = (cart.discountTotal/100)*(100 - offers.rpd)
-        // }
-        // else if(cartItems.length == 5){
-
-        // }
-
         for(let applicable of offers.buy_m_save_m){
-            if(applicable.quantity == cart.length){
+            if(applicable.quantity == cart.items.length){
                 cart.appliedDiscounts.push("Buy More Save More")
                 cart.discountTotal = (cart.discountTotal/100)*(100 - applicable.discount)
             }
@@ -137,19 +133,22 @@ const calculateCartTotal = async (userId) => {
             }
 
             cart.appliedDiscounts.push("Cart Wide Discount")
-
         }
 
-        if(user.coupens > 0){
+        if(isAnniversary()) {
+            cart.appliedDiscounts.push("Anniversary Discount")
+            cart.discountTotal = (cart.discountTotal/100)*(100 - offers.ad)
+        }
+
+        if(user.coupens && user.coupens > 0){
             cart.appliedDiscounts.push("Referal Progam Discount")
             cart.discountTotal = (cart.discountTotal/100)*(100 - offers.rpd)
-            
+            user.coupens = user.coupens - 1
         }
-        console.log('@@@ HHH EEE RRRR EEE')
-        await userRepo.updateUser(userId, {cart:cart, coupens: (user.coupens-1)})
+        await userRepo.updateUser(userId, {cart:cart, coupens: user.coupens})
 
     } catch (error) {
-        
+        console.log(error)
     }
 }
 

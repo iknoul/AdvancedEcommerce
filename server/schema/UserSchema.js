@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema({
     },
     cart : CartItem,
     coupens: Number,
+    createdDate: Date,
 })
 
 const User = mongoose.model('users', userSchema)

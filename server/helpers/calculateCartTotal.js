@@ -9,9 +9,11 @@ const calculateCartTotal = async (userId) => {
 
     try {
         
-        const offers = await OfferesSchema.find()
-
+        const  offersArray = await OfferesSchema.find({})
+        const offers = offersArray[0]
+        console.log(offers.buy_n_get_n, "here the offers")
         const cartItems = await cartItemRepo.getCartItemByUser(userId)
+        console.log(cartItems, "her the car items")
         // const cart = await userRepo.getCart(userId)
         const user = await userRepo.getUser(userId)
 
@@ -25,12 +27,12 @@ const calculateCartTotal = async (userId) => {
         const isElgibleforExclusiveTier =  userLifeTimeSpending() > 5000
 
         const findNoOfUniqueItemQuanity = (product) => {
-            const uniqueQuantity = cartItems.filter((item) => item.product === product)
+            const uniqueQuantity = cartItems.filter((item) => item.productId === product)
             return Number(uniqueQuantity[0].quantity)
         }
 
         const findNoOfUniqueOrders = (product) => {
-            const sameItemOrder = cartItems.filter((item) => item.product === product)
+            const sameItemOrder = cartItems.filter((item) => item.productId === product)
             return sameItemOrder.length
         }
 
@@ -41,32 +43,34 @@ const calculateCartTotal = async (userId) => {
         }
 
         for(let item of cartItems){
-
+            console.log("here bgg")
             item.appliedOffers = []
             item.discountPrice = item.actualprice
+            console.log(offers.buy_n_get_n, item.productId, "0000")
 
-            if(offers.buy_n_get_n.includes(item.product)){
+            if(offers.buy_n_get_n.includes(item.productId)){
+                console.log('@@@ HHH EEE RRRR EEE 111')
                 item.appliedOffers.push("Buy-One_Get_One_Free")
             }
-            else if(offers.bpd.includes(item.product) && item.quantity >= 3) {
+            else if(offers.bpd.includes(item.productId) && item.quantity >= 3) {
                 item.appliedOffers.push("Bulk Purchase Discount")
                 item.discountPrice = item.actualprice*(1-0.04)
             }
             else if(
-                offers.ltd.item === item.product 
+                offers.ltd.item === item.productId 
                 && (Date.now < offers.ltd.seasonStart && (Date.now > offers.ltd.seasonEnd))
             ){
                 item.appliedOffers.push("Limited Time Discount")
                 item.discountPrice = (item.discountPrice/100)*(100 - offers.ltd.discount)
             }
             else if(
-                offers.sd.item == item.product
+                offers.sd.item == item.productId
                 && findNoOfUniqueItemQuanity(offers.cd.pairedItem)>0
             ){
                 item.appliedOffers.push("Seasonal Discount")
                 item.discountPrice = (item.discountPrice/100)*(100 - offers.sd.discount)
             }
-            else if(offers.cd.applicableItem == item.product){
+            else if(offers.cd.applicableItem == item.productId){
 
                 const pairedItemQuantity = findNoOfUniqueItemQuanity(offers.cd.pairedItem)
                 if(pairedItemQuantity > 0 ){
@@ -75,7 +79,7 @@ const calculateCartTotal = async (userId) => {
                 }
                 item.appliedOffers.push("Combo Discount")
             }
-            else if(offers.td.item == item.product){
+            else if(offers.td.item == item.productId){
                 for(let applicable of offers.td.tieredDiscount){
                     if(applicable.quantity == item.quantity){
                         item.appliedOffers.push("Tiered Discount")
@@ -89,7 +93,7 @@ const calculateCartTotal = async (userId) => {
                 item.discountPrice = (item.discountPrice/100)*(100 - offers.ld.discount)
             }
 
-            if(findNoOfUniqueOrders(item.product) == 1){
+            if(findNoOfUniqueOrders(item.productId) == 1){
                 item.appliedOffers.push("Personalised Offer")
                 item.discountPrice = (item.discountPrice/100)*(100 - offers.po)
             }

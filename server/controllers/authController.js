@@ -30,13 +30,12 @@ const login = async (req, res) => {
     const {mobile, password} = req.body
     if(!mobile || !password) res.status(501).json("bad request")
 
-    const userId = checkUserAndPassword(mobile, password)
-
+    const userId = await checkUserAndPassword(mobile, password)
     if (userId) {
 
         const loginToken = await jwt.sign({userId: userId}, process.env.JWT_SECRET_KEY, {expiresIn:'1d'})
 
-        res.status(200).json({message:"success", token: loginToken})
+        res.status(200).json({message:"success", token: loginToken, userId: userId})
 
     } else res.status(504).json("you are not authenticated")
 }

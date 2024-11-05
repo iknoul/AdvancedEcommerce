@@ -12,17 +12,14 @@ exports.checkToken = ()=>{
                 res.status(403).json({success:false,message:'you are not authorized'})
             }
             const token = bToken.slice(7)
-            const decoded = jwt.verify(token,process.env.SECRET_KEY)
-            console.log(decoded)
+            const decoded = jwt.verify(token,process.env.JWT_SECRET_KEY)
             // Add email from decoded token to req.body
             req.body.userId = decoded.userId;
 
-            if(steps.indexOf(decoded.step)==-1){
-                return res.status(403).json({message:'you are not authorized'})
-            }
             next()
         } catch (error) {
-            return res.status(403).json({message:'you are not authorized'})
+            console.log(error)
+            return res.status(403).json({message:'you are not authorized lll'})
         }
     }
 }

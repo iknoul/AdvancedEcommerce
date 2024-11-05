@@ -8,6 +8,6 @@ const user_routes = require('./user-routes')
 const router = express.Router()
 
 router.use('/auth',auth_routes)
-// router.use('/user', checkToken, user_routes)
+router.use('/user', checkToken.checkToken(), user_routes)
 
 module.exports =  router

@@ -3,8 +3,8 @@ const mongoose = require('mongoose')
 const CartItem = mongoose.Schema({
     items: [mongoose.Schema.ObjectId],
     appliedDiscounts: [String],
-    bagTotal: String,
-    total :String,
+    actualTotal: Number,
+    discountTotal :Number,
 })
 
 const userSchema = new mongoose.Schema({
@@ -15,7 +15,8 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    cart : CartItem
+    cart : CartItem,
+    coupens: Number,
 })
 
 const User = mongoose.model('users', userSchema)

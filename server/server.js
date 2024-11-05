@@ -2,6 +2,7 @@ const dotenv = require('dotenv');
 dotenv.config({ path: './.env' });
 
 // const seed = require("./seedings/productSeeding")
+// const createOfferes = require("./seedings/offersSeed")
 
 require('./config/db')
 

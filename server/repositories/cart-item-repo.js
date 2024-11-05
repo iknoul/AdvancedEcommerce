@@ -9,6 +9,26 @@ const getCartItemByUniqueKey = async (uniqueKey) => {
     }
 }
 
+const getCartItemByProductId = async (productId) => {
+
+    try {
+        return await CartItem.find({product:productId})
+    } catch (error) {
+        
+    }
+}
+
+const getCartItemByProductIdUserId= async (productId, userId) => {
+
+    try {
+        const o = await CartItem.findOne({productId:productId, user: userId})
+        console.log(o, "here o ")
+        return o
+    } catch (error) {
+        
+    }
+}
+
 const getCartItemById = async (cartItemID) => {
     
     try {
@@ -26,10 +46,10 @@ const getCartItemByUser = async (userId) => {
     }
 }
 
-const updateCartItem = async (data) => {
+const updateCartItem = async (cartItemId, data) => {
 
     try {
-        await CartItem.findByIdAndUpdate(data._id,data)
+        await CartItem.findByIdAndUpdate(cartItemId, data)
     } catch (error) {
         
     }
@@ -38,7 +58,10 @@ const updateCartItem = async (data) => {
 const createCartItem = async (cartItemData) => {
     
     try {
-        await CartItem.create(cartItemData)
+        console.log(cartItemData, ' here cart item data')
+        const d = await CartItem.create(cartItemData)
+        console.log(d, 'here d')
+        return d
     } catch (error) {
         
     }
@@ -49,5 +72,7 @@ module.exports = {
     getCartItemById,
     getCartItemByUser,
     updateCartItem,
-    createCartItem
+    createCartItem,
+    getCartItemByProductId,
+    getCartItemByProductIdUserId
 }

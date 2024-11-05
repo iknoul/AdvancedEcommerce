@@ -10,19 +10,21 @@ const cartItemSchema = new mongoose.Schema({
         type: String, 
         required: true
     },
+    productId: mongoose.Schema.ObjectId,
     appliedOffers: [String],
     actualprice: {
-        type: String,
+        type: Number,
         required: true,
     },
-    discountPrice : String,
+    product: mongoose.Schema.ObjectId,
+    discountPrice : Number,
     user: {
         type: mongoose.Schema.ObjectId,
         ref: User,
         required: true
     },
     quantity: {
-        type: String,
+        type: Number,
     } 
 
 })

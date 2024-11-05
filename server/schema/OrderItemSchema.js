@@ -13,7 +13,7 @@ const orderItemSchema = new mongoose.Schema({
         required: true
     },
     price: {
-        type: String,
+        type: Number,
         required: true,
     },
     user: {
@@ -21,7 +21,7 @@ const orderItemSchema = new mongoose.Schema({
         ref: User,
         required: true
     },
-    quantity: String 
+    quantity: Number 
 
 })
 

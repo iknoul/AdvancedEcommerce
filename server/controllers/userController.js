@@ -34,7 +34,7 @@ const addCartItem = async(req, res) => {
     try {
         const product = await productRepo.getProductById(productId)
         const  cartItem = await cartItemRepo.getCartItemByProductIdUserId(productId, userId)
-        console.log(cartItem, "cartitem")
+        console.log(product, "cartitem")
         if(cartItem) cartItemRepo.updateCartItem(cartItem._id, {quantity: (cartItem.quantity+quantity), actualprice: cartItem.actualprice+product.price, discountPrice: cartItem.actualprice+product.price})
         else {
             const newCartItem = await cartItemRepo.createCartItem({...product._doc, productId:productId, quantity: 1, user: userId, actualprice: product.price, discountPrice: product.price})

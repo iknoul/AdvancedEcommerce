@@ -8,7 +8,9 @@ const productRepo = require("../repositories/product-repo")
 const calculateCartTotal = async (userId) => {
 
     try {
+        
         const offers = await OfferesSchema.find()
+
         const cartItems = await cartItemRepo.getCartItemByUser(userId)
         // const cart = await userRepo.getCart(userId)
         const user = await userRepo.getUser(userId)
@@ -24,7 +26,7 @@ const calculateCartTotal = async (userId) => {
 
         const findNoOfUniqueItemQuanity = (product) => {
             const uniqueQuantity = cartItems.filter((item) => item.product === product)
-            return uniqueQuantity[0].quantity
+            return Number(uniqueQuantity[0].quantity)
         }
 
         const findNoOfUniqueOrders = (product) => {
@@ -137,8 +139,10 @@ const calculateCartTotal = async (userId) => {
         if(user.coupens > 0){
             cart.appliedDiscounts.push("Referal Progam Discount")
             cart.discountTotal = (cart.discountTotal/100)*(100 - offers.rpd)
-            await userRepo.updateUser(userId, {cart:cart, coupens: (user.coupens-1)})
+            
         }
+        console.log('@@@ HHH EEE RRRR EEE')
+        await userRepo.updateUser(userId, {cart:cart, coupens: (user.coupens-1)})
 
     } catch (error) {
         

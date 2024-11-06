@@ -28,7 +28,14 @@ const calculateCartTotal = async (userId) => {
         }
     
         const findNoOfUniqueOrders = (product) => {
-            const sameItemOrder = orders.filter((item) => item.productId.toString() === product.toString())
+            const sameItemOrder = orders.filter((item) => {
+                console.log(item.productId.toString() === product.toString(),item.productId.toString(),   product.toString(),"ya")
+                return item.productId.toString() === product.toString()
+            })
+            
+            if(sameItemOrder.length > 0) {
+                console.log(product, sameItemOrder.length,orders,"hjjj")
+            }
             return sameItemOrder.length
         }
     
@@ -37,10 +44,10 @@ const calculateCartTotal = async (userId) => {
             for (let order of orders) total+= order.price
             return total
         }
-        const isAnniversary = () => { 
-            const today = new Date(); 
-            return (today.getDate() === user.createdDate.getDate() && today.getMonth() === user.createdDate.getMonth());
-        }
+        // const isAnniversary = () => { 
+        //     const today = new Date(); 
+        //     return (today.getDate() === user.createdDate.getDate() && today.getMonth() === user.createdDate.getMonth());
+        // }
         console.log(offers)
         const isElgibleforExclusiveTier =  userLifeTimeSpending() > 5000
         
@@ -107,7 +114,7 @@ const calculateCartTotal = async (userId) => {
                 item.discountPrice = (item.discountPrice/100)*(100 - offers.eto)
             }
 
-            if((item.actualprice/100)*70<(item.discountPrice)){
+            if(((item.actualprice/100)*70)>(item.discountPrice)){
                 item.discountPrice = (item.actualprice/100)*70
             }
 
@@ -135,16 +142,17 @@ const calculateCartTotal = async (userId) => {
             cart.appliedDiscounts.push("Cart Wide Discount")
         }
 
-        if(isAnniversary()) {
-            cart.appliedDiscounts.push("Anniversary Discount")
-            cart.discountTotal = (cart.discountTotal/100)*(100 - offers.ad)
-        }
+        // if(isAnniversary()) {
+        //     cart.appliedDiscounts.push("Anniversary Discount")
+        //     cart.discountTotal = (cart.discountTotal/100)*(100 - offers.ad)
+        // }
 
         if(user.coupens && user.coupens > 0){
             cart.appliedDiscounts.push("Referal Progam Discount")
             cart.discountTotal = (cart.discountTotal/100)*(100 - offers.rpd)
             user.coupens = user.coupens - 1
         }
+
         await userRepo.updateUser(userId, {cart:cart, coupens: user.coupens})
 
     } catch (error) {

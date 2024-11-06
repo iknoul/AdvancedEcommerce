@@ -7,7 +7,6 @@ const orderItemSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    produc: mongoose.Schema.ObjectId,
     name: {
         type: String, 
         required: true

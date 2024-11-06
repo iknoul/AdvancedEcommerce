@@ -3,6 +3,7 @@ dotenv.config({ path: './.env' });
 
 // const seed = require("./seedings/productSeeding")
 // const createOfferes = require("./seedings/offersSeed")
+// const orderIremSedding = require("./seedings/orderIremSedding")
 
 require('./config/db')
 
